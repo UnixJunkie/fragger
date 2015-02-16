@@ -1,0 +1,28 @@
+OASISFormat: 0.3
+Name:        Fragger
+Version:     1.0
+Synopsis:    A fast RMSD-based protein fragment picker
+Authors:     Francois Berenger
+License:     LGPL
+Plugins:     META (0.3), DevFiles (0.3)
+
+Executable bb_atom_quads
+  Path:           .
+  BuildDepends:   core, batteries, str, parmap, dolog
+  BuildTools:     ocamlbuild
+  CompiledObject: native
+  MainIs:         bb_atom_quads.ml
+
+Executable get_frag
+  Path:           .
+  BuildDepends:   core, batteries, str, dolog
+  BuildTools:     ocamlbuild
+  CompiledObject: native
+  MainIs:         get_frag.ml
+
+Executable query
+  Path:           .
+  BuildDepends:   core, batteries, str, parmap, dolog
+  BuildTools:     ocamlbuild
+  CompiledObject: native
+  MainIs:         query.ml

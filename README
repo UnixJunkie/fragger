@@ -1,0 +1,62 @@
+
+# INSTALL INSTRUCTIONS #######################################################
+
+# You need to have OCaml and OPAM installed on your system
+# cf. http://opam.ocamlpro.com/doc/Quick_Install.html
+
+# You need to have pdbset from CCP4 installed
+# cf. http://www.ccp4.ac.uk/index.php
+
+# compile Fragger and ranker_aa
+./build.sh
+
+# USAGE EXAMPLES #############################################################
+
+# all tools have a -h or --help option, it is recommended to read the help
+# message before really using any of the tools
+
+# list your PDB files
+find data/pdbs -regex '.*\.pdb$' > pdbs.txt
+
+# clean the PDBs
+mkdir -p cleaned
+(
+# CHANGE THE FOLLOWING LINE TO REFLECT YOUR CCP4 INSTALLATION
+source /usr/local/src/ccp4/ccp4-6.3.0/setup-scripts/ccp4.setup-sh
+cat pdbs.txt | xargs -L1 ./bin/pdb_filter.sh cleaned
+)
+
+# list your cleaned PDB files
+find cleaned -regex '.*\.pdb$' > cleaned.txt
+
+# create a "database"
+./src/bb_atom_quads.native -i cleaned.txt -o fragments_DB
+
+# prepare to generate all fragments of a given size
+grep TER fragments_DB | awk '{print $2"_*"}' > all_ids
+
+# generate all fragments of size 9
+./src/get_frag.native -db fragments_DB -i all_ids -n 9 > fragments_9
+
+# create an RMSD index
+./src/query.native -db fragments_DB -i 01_A_0001:fragments_9 -o 01_A_0001.rmsds
+# create another
+./src/query.native -db fragments_DB -i 06_A_0049:fragments_9 -o 06_A_0049.rmsds
+# we recommend at least 3 indices for large databases or as much as you have
+# cores on your computer in case of parallel runs (-np option in query)
+# as a rule of thumb, the reference fragments should be far from each others
+# and at least two
+
+# suppose you want to use 02_A_0045 as your query fragment
+./src/get_frag.native -db fragments_DB -id 02_A_0045 -o 02_A_0045.pdb -n 9
+
+# you can query with it now
+./src/query.native -db fragments_DB -q 02_A_0045.pdb -d 0.2 -o results \
+-idx 01_A_0001.rmsds,06_A_0049.rmsds
+
+# Don't hesitate to contact us if you need any help to use the tool
+# or find any bug.
+#
+# The authors,
+# Francois Berenger, David Simoncini, Arnout Voet,
+# Rojan Shrestha and Kam Zhang.
