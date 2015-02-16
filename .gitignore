@@ -7,6 +7,7 @@
 *.cmx
 *.cmxs
 *.cmxa
+<<<<<<< HEAD
 *.native
 ext/ranker_AA_QCP/ranker_aa
 src/_build
@@ -15,3 +16,5 @@ src/setup.log
 src/_tags
 src/configure
 src/myocamlbuild.ml
+=======
+>>>>>>> b6a071e583caa12aef3bba2952ec8723d189ca37
