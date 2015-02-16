@@ -7,3 +7,8 @@
 *.cmx
 *.cmxs
 *.cmxa
+*.native
+ext/ranker_AA_QCP/ranker_aa
+src/_build
+src/setup.data
+src/setup.log
