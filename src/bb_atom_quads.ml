@@ -94,16 +94,14 @@ let only_NCACO_quads pdb_name warn1 warn2 l =
                 else
                   let _ =
                     if !warn1 then
-                      (warn
-                         (lazy (sprintf "bad bb atom types in %s" pdb_name));
+                      (warn "bad bb atom types in %s" pdb_name;
                        warn1 := false);
                   in
                   false
             | _ ->
               let _ =
                 if !warn2 then
-                  (warn
-                     (lazy (sprintf "bad number of bb atoms in %s" pdb_name));
+                  (warn "bad number of bb atoms in %s" pdb_name;
                    warn2 := false);
               in
               false)
@@ -171,11 +169,11 @@ let process_chain no_dup_seq seen_sequences index out offset pdb_in
       end
     with
       | Failure msg ->
-        error (lazy (sprintf "problem while parsing at residue level in %s %c"
-                       pdb_in chain));
-        error (lazy msg)
+        error "problem while parsing at residue level in %s %c"
+          pdb_in chain;
+        error "%s" msg
       | AA.Unknown_aa_one aa ->
-        warn (lazy (sprintf "non standard AA in %s %c: %s" pdb_in chain aa))
+        warn "non standard AA in %s %c: %s" pdb_in chain aa
 
 let fragment_pdb no_dup_seq index out offset pdb_in =
   let pdb = F.chop_extension (F.basename pdb_in) in
@@ -185,9 +183,8 @@ let fragment_pdb no_dup_seq index out offset pdb_in =
   let chains =
     try group_by_chain lines
     with Failure msg ->
-      error (lazy (sprintf "problem while parsing at chain level in %s"
-                     pdb_in));
-      error (lazy msg);
+      error "problem while parsing at chain level in %s" pdb_in;
+      error "%s" msg;
       [] (* PDB is ignored if error at this level of parsing *)
   in
   let warn1 = ref true in
@@ -227,7 +224,7 @@ let main () =
       Sys.argv.(0) in
   Arg.parse cmd_line ignore usage_msg;
   if !out_f = "" || !pdb_in = "" then begin
-    fatal (lazy usage_msg);
+    fatal "%s" usage_msg;
     exit 1;
   end;
   let pdbs = MU.string_list_of_file !pdb_in in
@@ -250,10 +247,10 @@ let main () =
       (L.iter pdb_ss
          ~f:(fun (pdb, _ss) ->
                fragment_pdb !no_dup_seq index out offset pdb)));
-  info (lazy "saving DB index for next time ...");
+  info "saving DB index for next time ...";
   MU.with_out_file ~bin:true idx_file
     (fun out -> Marshal.to_channel out index [Marshal.No_sharing]);
-  info (lazy "saved")
+  info "saved"
 ;;
 
 main()

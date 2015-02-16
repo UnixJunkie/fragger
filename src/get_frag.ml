@@ -73,7 +73,7 @@ let main () =
        (int_of_bool (!r > 0)) +
        (int_of_bool (!frag_id <> ""))) > 1) (* incompatible options *)
   then begin
-    fatal (lazy use_msg);
+    fatal "%s" use_msg;
     exit 1
   end;
   let index = DB.load_db_index !db !debug in
@@ -111,7 +111,7 @@ let main () =
        !no_coords io_mode seq_filter index frag_db_fd !n requested);
   Unix.close frag_db_fd;
   let count = DB.get_count() in
-  info (lazy (sprintf "wrote %d fragments of %d residues" count !n))
+  info "wrote %d fragments of %d residues" count !n
 ;;
 
 main()

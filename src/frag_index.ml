@@ -73,14 +73,14 @@ let string_of_rank_id (rank, id) =
 let load_index idx_file force =
   let bin_idx_file = idx_file ^ ".bin" in
   if (Sys.file_exists bin_idx_file = `Yes) && (not force) then begin
-    info (lazy "loading index from previous run ...");
+    info "loading index from previous run ...";
     let fragments =
       In_channel.with_file ~binary:true bin_idx_file
         ~f:(fun input -> Marshal.from_channel input) in
-    info (lazy "loaded");
+    info "loaded";
     fragments
   end else begin
-    info (lazy "loading index from text file ...");
+    info "loading index from text file ...";
     let before = Unix.gettimeofday() in
     let nb_frags = ref 0 in
     let parsed_lines =
@@ -97,12 +97,11 @@ let load_index idx_file force =
     let grouped_fragments = group_by_dist sorted_fragments in
     let fragments = FragSet.of_list grouped_fragments in
     let after = Unix.gettimeofday() in
-    info (lazy (
-      sprintf "loaded index for %d fragments in %.3fs"
-        !nb_frags (after -. before)));
-    info (lazy "saving index for next time ...");
+    info "loaded index for %d fragments in %.3fs"
+      !nb_frags (after -. before);
+    info "saving index for next time ...";
     MU.with_out_file ~bin:true bin_idx_file
       (fun out -> Marshal.to_channel out fragments [Marshal.No_sharing]);
-    info (lazy "saved");
+    info "saved";
     fragments
   end

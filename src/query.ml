@@ -74,7 +74,7 @@ let res_list_or_nb_res res_list nb_res =
   else nb_res
 
 let fuzzy_query ranker res query d force index =
-  info (lazy (sprintf "index: %s" index));
+  info "index: %s" index;
   (* distance between reference and query *)
   let ref_frag_fn    = Filename.temp_file "ref_" ".pdb" in
   let ref_frag_lines = MU.read_while ((<>) "END") index in
@@ -99,15 +99,15 @@ let fuzzy_query ranker res query d force index =
   let potential_frags, _ = FragSet.split_le (d_sup, []) ge_d_inf in
   (* this set will be reduced later using results from queries using
      different references *)
-  info (lazy (sprintf "first: %f" (fst (FragSet.min_elt potential_frags))));
-  info (lazy (sprintf "last: %f" (fst (FragSet.max_elt potential_frags))));
+  info "first: %f" (fst (FragSet.min_elt potential_frags));
+  info "last: %f" (fst (FragSet.max_elt potential_frags));
   let requested = HT.create 10_000_000 in
   FragSet.iter
     (fun (_rmsd, frag_ids) ->
        L.iter frag_ids
          ~f:(fun frag_id -> HT.add requested frag_id ()))
     potential_frags;
-  info (lazy (sprintf "nb candidates: %d" (HT.length requested)));
+  info "nb candidates: %d" (HT.length requested);
   (nb_res, requested)
 
 let read_fst_frag fn =
@@ -130,9 +130,8 @@ let create_index opts ranker ref_frag all_fragments_fn out_fn =
     (DB.output_several_frags
        false DB.Txt2txt no_sequence_filter db_index frag_db_fd nb_res [ref_frag]);
   Unix.close frag_db_fd;
-  info (lazy (sprintf
-                "creating %d residues RMSD index for %s in %s..."
-                nb_res ref_frag ref_frag_fn));
+  info "creating %d residues RMSD index for %s in %s..."
+    nb_res ref_frag ref_frag_fn;
   Random.self_init(); (* varies each run *)
   (* dump ref_frag as the header in the index file too *)
   MU.run_command (
@@ -153,7 +152,7 @@ let merge fquery_results =
     ~f:(fun (nb_res1, frags1) (nb_res2, frags2) ->
           if nb_res1 = nb_res2 then
             let new_set = MU.inter frags1 frags2 in
-            let _ = info (lazy (sprintf "nb frags: %d" (HT.length new_set))) in
+            let _ = info "nb frags: %d" (HT.length new_set) in
             (nb_res1, new_set)
           else failwith
             (sprintf
@@ -162,13 +161,13 @@ let merge fquery_results =
 
 let exact_query opts ranker db_index frag_db_fd nb_res requested =
   (* EXACT QUERY *)
-  info (lazy (sprintf "loading %d fragments ..." (L.length requested)));
+  info "loading %d fragments ..." (L.length requested);
   let seq_filter = sequence_filter !(opts.filt) in
   MU.with_out_file !(opts.out_f)
     (DB.output_several_frags
        false DB.Bin2bin seq_filter db_index frag_db_fd nb_res requested);
   (* only keep the ones within query distance to the fragment query *)
-  info (lazy "filtering them ...");
+  info "filtering them ...";
   let rmsds_str =
     MU.get_command_output
       (sprintf "%s %s %s %s %f -bin"
@@ -177,7 +176,7 @@ let exact_query opts ranker db_index frag_db_fd nb_res requested =
          !(opts.out_f)
          !(opts.query)
          !(opts.d)) in
-  info (lazy "writing them ...");
+  info "writing them ...";
   let nb_survivors = ref 0 in
   let survived =
     L.fold (S.split rmsds_str ~on:'\n') ~init:[]
@@ -189,11 +188,10 @@ let exact_query opts ranker db_index frag_db_fd nb_res requested =
                 incr nb_survivors;
                 (rmsd_f, id) :: acc
               | _ ->
-                let _ = error (lazy (
-                  sprintf "unexpected line in the output of ranker: %s"
-                    rmsd_frag)) in
+                let _ = error "unexpected line in the output of ranker: %s"
+                    rmsd_frag in
                 acc) in
-  info (lazy (sprintf "Found %d fragment(s)" !nb_survivors));
+  info "Found %d fragment(s)" !nb_survivors;
   (nb_res, survived, !nb_survivors)
 
 let merge_query_outputs
@@ -348,7 +346,7 @@ let main () =
                       !(opts.out_f) = ""   ||  (* no output file *)
     ((!(opts.min) <> 0) && (!(opts.max) <> 0)) (* incompatible options *)
   then begin
-    fatal (lazy use_msg);
+    fatal "%s" use_msg;
     exit 1
   end;
   let ranker =
@@ -372,7 +370,7 @@ let main () =
         ((!(opts.max) <> 0) && ((trd3 !query_output) > !(opts.max))) do
     (* update query distance *)
     opts.d := !(opts.d) +. !(opts.dx);
-    info (lazy (sprintf "query distance updated: %f" !(opts.d)));
+    info "query distance updated: %f" !(opts.d);
     query_output := fuzzy_then_exact_query opts ranker db_index frag_db_fd;
   done;
   let nb_res, survived, _nb_found = !query_output in
@@ -384,7 +382,7 @@ let main () =
        let n = !(opts.n) in
        let lst =
          if n <> 0 then
-           let _ = info (lazy (sprintf "Will output %d" n)) in
+           let _ = info "Will output %d" n in
            L.take selected n
          else
            selected
@@ -395,7 +393,7 @@ let main () =
                (* FBR: less efficent than requesting many at a time *)
                DB.output_one_frag !(opts.no_coords) io_mode
                  no_sequence_filter db_index frag_db_fd nb_res id out));
-  info (lazy "Done");
+  info "Done";
   Unix.close frag_db_fd
 ;;
 

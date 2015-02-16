@@ -58,9 +58,8 @@ let get_pdb_chain frag_db_fd frag =
   (* read it *)
   let was_read = MU.really_read frag_db_fd frag_str block_len in
   if was_read <> block_len then begin
-    fatal (lazy (
-      sprintf "frag_db.ml: get_pdb_chain: could not read whole fragment: %s"
-        frag.pdb_chain));
+    fatal "frag_db.ml: get_pdb_chain: could not read whole fragment: %s"
+      frag.pdb_chain;
     exit 1;
   end;
   let atom_line_len = 81 in
@@ -113,9 +112,8 @@ let create_pdb_line atom_num atom_name res_name chain res_num x y z =
 let output_a_frag no_coords pdb_chain frag seq_filter out nb_res index =
   let max_i = max_index frag nb_res in
   if index < 1 || index > max_i then
-    warn (lazy (
-      sprintf "frag_db.ml: output_a_frag of len %d: impossible: %s %d"
-        nb_res frag.pdb_chain index))
+    warn "frag_db.ml: output_a_frag of len %d: impossible: %s %d"
+        nb_res frag.pdb_chain index
   else
     output_one_frag_priv no_coords frag seq_filter out pdb_chain nb_res index
 
@@ -182,7 +180,7 @@ let output_a_frag_b2b no_coords frag seq_filter out nb_res index =
 let output_any_frag no_coords frag seq_filter out pdb_chain nb_res =
   let max_i = max_index frag nb_res in
   if max_i < 1 then
-    warn (lazy (sprintf "skipped %s (too short)" frag.pdb_chain))
+    warn "skipped %s (too short)" frag.pdb_chain
   else
     (* any is in [1 ; max_index] *)
     let any = 1 + Random.int max_i in
@@ -297,11 +295,11 @@ let load_db_index db_file debug =
   in
   let bin_idx_file = db_file ^ ".idx" in
   if Sys.file_exists bin_idx_file = `Yes then begin
-    info (lazy "loading DB index from previous run ...");
+    info "loading DB index from previous run ...";
     let frags_index =
       In_channel.with_file ~binary:true bin_idx_file
         ~f:(fun input -> Marshal.from_channel input) in
-    info (lazy "loaded");
+    info "loaded";
     MU.guarded_tap debug debug_f frags_index
   end else begin
     failwith ("Recreate your DB: could not open index: " ^ bin_idx_file);
