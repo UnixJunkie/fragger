@@ -12,7 +12,7 @@
 
 (* Keep only quads of lines N,CA,C,O per residue from the input PDB *)
 
-open Core.Std
+open Core
 open Indexed_frag
 open Printf
 open Log

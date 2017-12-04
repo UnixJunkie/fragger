@@ -13,7 +13,7 @@
 (* to create/load the RMSD index of many fragments
    to a given reference fragment *)
 
-open Core.Std
+open Core
 open Printf
 open Log
 

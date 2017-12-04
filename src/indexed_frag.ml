@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. *)
 
-open Core.Std
+open Core
 
 module L  = List
 module MU = My_utils

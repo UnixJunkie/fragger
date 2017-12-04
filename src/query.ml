@@ -14,7 +14,7 @@
    - a query fragment
    - a maximum allowed RMSD to this query *)
 
-open Core.Std
+open Core
 open Printf
 open Indexed_frag
 open Frag_index

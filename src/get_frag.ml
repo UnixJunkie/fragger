@@ -13,7 +13,7 @@
 (* get some fragments out of a fragments DB, either randomly
    or selected by id. *)
 
-open Core.Std
+open Core
 open Printf
 open Indexed_frag
 open Log

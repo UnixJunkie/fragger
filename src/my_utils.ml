@@ -18,7 +18,7 @@
    #use "my_utils.ml";;
 *)
 
-open Core.Std
+open Core
 
 module A   = Array
 module F   = Filename
