@@ -68,10 +68,18 @@ let random_residue res_num =
    printf "%s" (random_residue 1);;
 *)
 
+type user_choice = Res_list of string
+                 | Nb_res of int
+
 let res_list_or_nb_res res_list nb_res =
-  if res_list <> ""
-  then res_list
-  else nb_res
+  if res_list <> "" then
+    Res_list res_list
+  else
+    Nb_res nb_res
+
+let string_of_user_choice = function
+  | Res_list rl -> rl
+  | Nb_res n -> string_of_int n
 
 let fuzzy_query ranker res query d force index =
   info "index: %s" index;
@@ -86,7 +94,7 @@ let fuzzy_query ranker res query d force index =
          (MU.get_command_output
             (sprintf "%s %s %s %s 0"
                ranker
-               (res_list_or_nb_res res (string_of_int nb_res))
+               (string_of_user_choice (res_list_or_nb_res res nb_res))
                ref_frag_fn
                query))) in
   Sys.remove ref_frag_fn;
@@ -168,14 +176,19 @@ let exact_query opts ranker db_index frag_db_fd nb_res requested =
        false DB.Bin2bin seq_filter db_index frag_db_fd nb_res requested);
   (* only keep the ones within query distance to the fragment query *)
   info "filtering them ...";
+  let choice = res_list_or_nb_res !(opts.res) nb_res in
+  let optim = match choice with
+    | Res_list _ -> ""
+    | Nb_res _ -> " -bin" in
   let rmsds_str =
     MU.get_command_output
-      (sprintf "%s %s %s %s %f -bin"
+      (sprintf "%s %s %s %s %f%s"
          ranker
-         (res_list_or_nb_res !(opts.res) (string_of_int nb_res))
+         (string_of_user_choice choice)
          !(opts.out_f)
          !(opts.query)
-         !(opts.d)) in
+         !(opts.d)
+         optim) in
   info "writing them ...";
   let nb_survivors = ref 0 in
   let survived =
