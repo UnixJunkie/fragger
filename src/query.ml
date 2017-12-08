@@ -36,6 +36,7 @@ type option_type =
       out_f     : string ref ;
       filt      : string ref ;
       mode      : string ref ;
+      io_mode   : DB.io_mode ref;
       d         : float  ref ;
       dx        : float  ref ;
       rand_by   : (int * int) ref;
@@ -68,10 +69,18 @@ let random_residue res_num =
    printf "%s" (random_residue 1);;
 *)
 
+type user_choice = Res_list of string
+                 | Nb_res of int
+
 let res_list_or_nb_res res_list nb_res =
-  if res_list <> ""
-  then res_list
-  else nb_res
+  if res_list <> "" then
+    Res_list res_list
+  else
+    Nb_res nb_res
+
+let string_of_user_choice = function
+  | Res_list rl -> rl
+  | Nb_res n -> string_of_int n
 
 let fuzzy_query ranker res query d force index =
   info "index: %s" index;
@@ -86,7 +95,7 @@ let fuzzy_query ranker res query d force index =
          (MU.get_command_output
             (sprintf "%s %s %s %s 0"
                ranker
-               (res_list_or_nb_res res (string_of_int nb_res))
+               (string_of_user_choice (res_list_or_nb_res res nb_res))
                ref_frag_fn
                query))) in
   Sys.remove ref_frag_fn;
@@ -165,17 +174,22 @@ let exact_query opts ranker db_index frag_db_fd nb_res requested =
   let seq_filter = sequence_filter !(opts.filt) in
   MU.with_out_file !(opts.out_f)
     (DB.output_several_frags
-       false DB.Bin2bin seq_filter db_index frag_db_fd nb_res requested);
+       false !(opts.io_mode) seq_filter db_index frag_db_fd nb_res requested);
   (* only keep the ones within query distance to the fragment query *)
   info "filtering them ...";
+  let choice = res_list_or_nb_res !(opts.res) nb_res in
+  let optim = match choice with
+    | Res_list _ -> ""
+    | Nb_res _ -> " -bin" in
   let rmsds_str =
     MU.get_command_output
-      (sprintf "%s %s %s %s %f -bin"
+      (sprintf "%s %s %s %s %f%s"
          ranker
-         (res_list_or_nb_res !(opts.res) (string_of_int nb_res))
+         (string_of_user_choice choice)
          !(opts.out_f)
          !(opts.query)
-         !(opts.d)) in
+         !(opts.d)
+         optim) in
   info "writing them ...";
   let nb_survivors = ref 0 in
   let survived =
@@ -288,6 +302,7 @@ let main () =
     out_f     = ref ""          ;
     filt      = ref ""          ;
     mode      = ref "t2t"       ;
+    io_mode   = ref DB.Txt2txt  ;
     d         = ref 0.0         ;
     dx        = ref 0.1         ;
     rand_by   = ref (0, 0)      ;
@@ -355,12 +370,11 @@ let main () =
       "the RANKER environment variable must point \
        to ranker_aa exe or the ranker_aa command must be \
        in your PATH" in
-  if indexing then begin
-    let ref_frag, all_frags = parse_index_option_string !(opts.index) in
-    create_index opts ranker ref_frag all_frags !(opts.out_f);
-    exit 0;
-  end else
-  let io_mode = DB.io_mode_of_string !(opts.mode) in
+  if indexing then
+    (let ref_frag, all_frags = parse_index_option_string !(opts.index) in
+     create_index opts ranker ref_frag all_frags !(opts.out_f);
+     exit 0);
+  opts.io_mode := DB.io_mode_of_string !(opts.mode);
   let db_index = DB.load_db_index !(opts.db) !(opts.debug) in
   let frag_db_fd = Unix.openfile [Unix.O_RDONLY] !(opts.db) in
   let query_output =
@@ -391,7 +405,7 @@ let main () =
          ~f:(fun (rmsd, id) ->
                fprintf out "REMARK %f\n" rmsd;
                (* FBR: less efficent than requesting many at a time *)
-               DB.output_one_frag !(opts.no_coords) io_mode
+               DB.output_one_frag !(opts.no_coords) !(opts.io_mode)
                  no_sequence_filter db_index frag_db_fd nb_res id out));
   info "Done";
   Unix.close frag_db_fd
