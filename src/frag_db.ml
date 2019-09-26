@@ -249,8 +249,8 @@ let output_several_frags
   let table = A.of_list (L.rev_map requested ~f:(lookup index)) in
   (* sort by offset *)
   A.sort table
-    ~cmp:(fun (pdb_chain1, _) (pdb_chain2, _) ->
-            compare_frag_offset pdb_chain1 pdb_chain2);
+    ~compare:(fun (pdb_chain1, _) (pdb_chain2, _) ->
+        compare_frag_offset pdb_chain1 pdb_chain2);
   (* group by same offset/pdb_chain *)
   let last =
     A.fold table ~init:None

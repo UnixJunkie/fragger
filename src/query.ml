@@ -390,7 +390,7 @@ let main () =
   let nb_res, survived, _nb_found = !query_output in
   let selected =
     L.sort survived
-      ~cmp:(fun (rmsd1, _) (rmsd2, _) -> Float.ascending rmsd1 rmsd2) in
+      ~compare:(fun (rmsd1, _) (rmsd2, _) -> Float.ascending rmsd1 rmsd2) in
   MU.with_out_file !(opts.out_f)
     (fun out ->
        let n = !(opts.n) in

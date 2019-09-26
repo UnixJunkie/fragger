@@ -669,7 +669,7 @@ let cube x = x *. x *. x
 
 let median_a xs =
   let n = A.length xs in
-  A.sort xs ~cmp:Float.compare;
+  A.sort xs ~compare:Float.compare;
   if n mod 2 = 1
   then xs.(n/2)
   else (xs.(n/2) +. xs.(n/2 - 1)) /. 2.0
@@ -738,8 +738,8 @@ let pearson_a a1 a2 =
 (* comes from Biocaml, not me *)
 let spearman_rank arr =
   let arr = A.copy arr in
-  let arr = A.mapi (fun i a -> a,i) arr in
-  A.sort arr ~cmp:(fun (a,_) (b,_) -> Pervasives.compare a b);
+  let arr = A.mapi arr (fun i a -> a,i) in
+  A.sort arr ~compare:(fun (a,_) (b,_) -> Pervasives.compare a b);
   let g _prev il ans =
     let count = L.length il in
     let n = count + (L.length ans) in

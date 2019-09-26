@@ -93,7 +93,7 @@ let load_index idx_file force =
                 ~f:(fun acc l ->
                       let _ = incr nb_frags in
                       (rank_id_of_string l) :: acc)) in
-    let sorted_fragments = L.sort parsed_lines ~cmp:cmp_rank_id in
+    let sorted_fragments = L.sort parsed_lines ~compare:cmp_rank_id in
     let grouped_fragments = group_by_dist sorted_fragments in
     let fragments = FragSet.of_list grouped_fragments in
     let after = Unix.gettimeofday() in
